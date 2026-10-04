@@ -1,0 +1,6 @@
+{
+  "name": "Apex Scientific Calculator",
+  "description": "Authentic precision scientific calculator featuring robust shunting-yard expression evaluation, DEG/RAD modes, memory registers, calculation tape history, realistic rubber-dome acoustic simulation, and tactile physical styling.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
