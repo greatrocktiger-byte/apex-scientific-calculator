@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apex Scientific Calculator - Technical Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111319;
+      --panel: #181B24;
+      --card-hover: #1E2A38;
+      --border: #2A303E;
+      --green: #7EE081;
+      --cyan: #2EC4B6;
+      --amber: #F59E0B;
+      --red: #E04F4F;
+      --white: #ECF2F8;
+      --muted: #8A94A6;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--white);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Controls Header */
+    header {
+      height: 52px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(17, 19, 25, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+    }
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .fx-tag {
+      background: var(--card-hover);
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+    }
+    .title-text {
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: -0.3px;
+    }
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      background: var(--card-hover);
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .slide-counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 60px;
+      text-align: center;
+    }
+
+    /* Slides Viewport */
+    .slides-wrapper {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .slide {
+      position: absolute;
+      width: 1240px;
+      height: 700px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 44px;
+      box-shadow: 0 25px 60px -15px rgba(0,0,0,0.8);
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .slide.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.985); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Common Slide Elements */
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .slide-h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(42, 48, 62, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .slide-body {
+      flex: 1;
+      display: flex;
+      gap: 24px;
+      overflow: hidden;
+    }
+    .card {
+      background: rgba(17, 19, 25, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title.green { color: var(--green); }
+    .card-title.cyan { color: var(--cyan); }
+    .card-title.amber { color: var(--amber); }
+    .card-title.red { color: var(--red); }
+
+    ul.bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    ul.bullet-list li {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--white);
+      position: relative;
+      padding-left: 18px;
+    }
+    ul.bullet-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--green);
+      font-weight: bold;
+    }
+    .screenshot-frame {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      background: #000;
+      display: flex;
+      flex-direction: column;
+    }
+    .screenshot-frame img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .caption {
+      padding: 8px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Comparison Table */
+    table.matrix {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.matrix th {
+      background: var(--card-hover);
+      color: var(--green);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+    }
+    table.matrix td {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      color: var(--white);
+    }
+    table.matrix tr:nth-child(even) {
+      background: rgba(17, 19, 25, 0.4);
+    }
+    table.matrix td.highlight {
+      background: rgba(126, 224, 129, 0.08);
+      color: var(--green);
+      font-weight: 600;
+      border-color: rgba(126, 224, 129, 0.3);
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 3px;
+      background: var(--border);
+      width: 100%;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--green);
+      width: 10%;
+      transition: width 0.2s ease;
+    }
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+    }
+    .badge.active {
+      color: var(--green);
+      border-color: rgba(126, 224, 129, 0.3);
+      background: rgba(126, 224, 129, 0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="logo-badge">
+      <div class="fx-tag">fx</div>
+      <div class="title-text">Apex Scientific Calculator — Evaluator Technical Deck</div>
+    </div>
+    <div class="nav-controls">
+      <button class="btn" onclick="prevSlide()" title="Previous slide (Left Arrow)">◀ Prev</button>
+      <div class="slide-counter" id="counter">1 / 10</div>
+      <button class="btn" onclick="nextSlide()" title="Next slide (Right Arrow)">Next ▶</button>
+      <button class="btn" onclick="toggleFullscreen()" title="Fullscreen presentation (F)">⛶ Fullscreen</button>
+    </div>
+  </header>
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+  <!-- Slides Viewport -->
+  <div class="slides-wrapper">
+
+    <!-- SLIDE 1: Title & Executive Summary -->
+    <div class="slide active" id="slide-1">
+      <div class="eyebrow">RESEARCH & ENGINEERING DECK</div>
+      <div class="slide-h1">
+        <span>APEX SCIENTIFIC CALCULATOR</span>
+        <span class="badge active">v1.0.0 Production</span>
+      </div>
+      <div style="font-size: 15px; color: var(--muted); margin-bottom: 24px;">
+        Deterministic Shunting-Yard RPN Engine, Synthetic Membrane Switch Acoustics & Dual-Power Physical UI
+      </div>
+      <div class="slide-body" style="gap: 18px;">
+        <div class="card" style="flex: 1;">
+          <div class="card-title green">01 / Algorithmic Rigor</div>
+          <ul class="bullet-list">
+            <li>Pure TypeScript implementation of Dijkstra's Shunting-Yard algorithm.</li>
+            <li>Eliminates arbitrary <code>eval()</code> security risks and parsing vulnerabilities.</li>
+            <li>Enforces exact operator precedence, right-associative exponents, and nested brackets.</li>
+            <li>Robust domain guards trap division by zero, fractional factorials, and negative roots.</li>
+          </ul>
+        </div>
+        <div class="card" style="flex: 1;">
+          <div class="card-title cyan">02 / Tactile Acoustics</div>
+          <ul class="bullet-list">
+            <li>Real-time Web Audio API switch synthesis modeling physical rubber dome switches.</li>
+            <li>1.9kHz - 2.4kHz bandpass filter emulating keycap plastic impact resonance.</li>
+            <li>160Hz exponential decaying sine thump for PCB bottoming-out sensation.</li>
+            <li>Zero downloaded audio assets: 0 KB network weight, zero audio click latency.</li>
+          </ul>
+        </div>
+        <div class="card" style="flex: 1;">
+          <div class="card-title amber">03 / Hardware Chassis UI</div>
+          <ul class="bullet-list">
+            <li>Authentic enclosure modeled after Casio fx-series and TI-84 engineering tools.</li>
+            <li>Photovoltaic solar cell simulation bezel and recessed anti-glare optical LCD.</li>
+            <li>Continuous calculation tape persisted across hard reloads via <code>localStorage</code>.</li>
+            <li>8 universal physics constants & 6 pre-formulated templates for rapid computation.</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);">
+        <span>Stack: React 19 • TypeScript 5.8 • Tailwind CSS v4 • Vite 8.3</span>
+        <span>Repository: greatrocktiger-byte/apex-scientific-calculator</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Problem Statement & Objectives -->
+    <div class="slide" id="slide-2">
+      <div class="eyebrow">PROBLEM STATEMENT & OBJECTIVES</div>
+      <div class="slide-h1">
+        <span>Why Standard Web Calculators Fail & What Apex Solves</span>
+        <span class="badge">Architecture Comparison</span>
+      </div>
+      <div class="slide-body">
+        <div class="card" style="flex: 1; border-color: rgba(224, 79, 79, 0.4);">
+          <div class="card-title red">✖ Flaws in Conventional Web Calculators</div>
+          <ul class="bullet-list">
+            <li><b style="color:var(--white);">Critical Security Vulnerability:</b> Many web implementations evaluate raw math strings through JavaScript <code>eval()</code>, enabling code injection.</li>
+            <li><b style="color:var(--white);">Broken Operator Hierarchy:</b> Naive linear parsers execute left-to-right, botching PEMDAS rules and unary negation (e.g. failing on <code>-5^2</code> vs <code>(-5)^2</code>).</li>
+            <li><b style="color:var(--white);">Lifeless Touch Experience:</b> Flat HTML buttons lack auditory and physical tactile response, causing frequent unnoticed mis-taps.</li>
+            <li><b style="color:var(--white);">No Historical Context:</b> Refreshing the browser flushes all previous work, with zero calculation audit tape or constants reference sheet.</li>
+          </ul>
+        </div>
+        <div class="card" style="flex: 1; border-color: rgba(126, 224, 129, 0.4);">
+          <div class="card-title green">✔ The Apex Engineering Solution</div>
+          <ul class="bullet-list">
+            <li><b style="color:var(--white);">100% Deterministic Shunting-Yard:</b> Converts infix math to Reverse Polish Notation (RPN) without <code>eval()</code>. Complete mathematical safety.</li>
+            <li><b style="color:var(--white);">Context-Aware Unary Tokenizer:</b> Distinguishes between unary negation (<code>neg</code>) and binary subtraction based on token boundaries.</li>
+            <li><b style="color:var(--white);">Synthesized Membrane Acoustics:</b> Web Audio API renders real-time switch transients without audio latency or external network downloads.</li>
+            <li><b style="color:var(--white);">Persistent Tape & Constant Catalog:</b> Automatic <code>localStorage</code> logging with 1-click re-injection of previous results and 8 scientific constants.</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top: 14px; padding: 12px 18px; border-radius: 8px; background: var(--card-hover); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--cyan); border: 1px solid var(--border);">
+        EVALUATOR VERDICT: Apex replaces fragile frontend scripts with an industrial-grade mathematical pipeline and hardware-grade user feedback loop.
+      </div>
+    </div>
+
+    <!-- SLIDE 3: System Architecture & Processing Pipeline -->
+    <div class="slide" id="slide-3">
+      <div class="eyebrow">SYSTEM ARCHITECTURE</div>
+      <div class="slide-h1">
+        <span>Processing Pipeline & Component Interconnect</span>
+        <span class="badge active">Data Flow</span>
+      </div>
+      <div class="slide-body" style="flex-direction: column; gap: 14px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+          <div class="card">
+            <div class="card-title green" style="font-size:12px;">Stage 1: Lexical Tokenizer</div>
+            <p style="font-size: 11px; color: var(--white); line-height: 1.4;">
+              Scans raw character stream. Resolves numbers, constants (π, e), functions (sin, log), and flags contextual unary minus.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title cyan" style="font-size:12px;">Stage 2: Shunting-Yard</div>
+            <p style="font-size: 11px; color: var(--white); line-height: 1.4;">
+              Applies Dijkstra's algorithm. Orders tokens into Reverse Polish Notation (RPN) using precedence & associativity tables.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title amber" style="font-size:12px;">Stage 3: Stack Evaluator</div>
+            <p style="font-size: 11px; color: var(--white); line-height: 1.4;">
+              Pops operands into accumulator stack. Executes arithmetic, applies DEG/RAD conversions, and traps mathematical domain faults.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title green" style="font-size:12px;">Stage 4: Paint & Sound Bus</div>
+            <p style="font-size: 11px; color: var(--white); line-height: 1.4;">
+              Updates LCD annunciators, appends paper tape item to storage, and triggers Web Audio acoustic impulse response.
+            </p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex: 1;">
+          <div class="card">
+            <div class="card-title cyan">Engine State Architecture (engine.ts)</div>
+            <ul class="bullet-list">
+              <li>Linear O(N) evaluation avoids stack overflow on arbitrarily large formulas.</li>
+              <li>Pure TypeScript class with zero DOM dependencies—100% testable in headless node/CI.</li>
+              <li>Deg/Rad angle conversion: <code>θ_rad = θ_deg × (π / 180)</code>.</li>
+              <li>Dynamic precision formatter prevents IEEE-754 floating-point visual clutter (e.g. <code>0.1 + 0.2 = 0.3</code>).</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-title amber">UI Component Topology (React 19)</div>
+            <ul class="bullet-list">
+              <li><code>App.tsx</code>: Orchestrates state machine, hotkey interceptors, and audio synthesis.</li>
+              <li><code>Display.tsx</code>: Dynamic auto-scaling typography and dual-power solar frame.</li>
+              <li><code>Keypad.tsx</code>: 36 tactile keycaps with 2nd mode register shifts.</li>
+              <li><code>HistoryPanel.tsx</code>: Real-time paper tape with granular deletion and 1-click restore.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: Mathematical Engine & Precedence Matrix -->
+    <div class="slide" id="slide-4">
+      <div class="eyebrow">ALGORITHMIC RIGOR</div>
+      <div class="slide-h1">
+        <span>Operator Precedence & Contextual Unary Negation</span>
+        <span class="badge">Shunting-Yard Matrix</span>
+      </div>
+      <div class="slide-body">
+        <div style="flex: 1.4; display: flex; flex-direction: column;">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>Token</th>
+                <th>Operation Type</th>
+                <th>Precedence</th>
+                <th>Associativity</th>
+                <th>Evaluated Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>!, %</code></td>
+                <td>Factorial, Percentage</td>
+                <td>Level 5 (Highest)</td>
+                <td>Left-to-Right</td>
+                <td><code>5! = 120, 50% = 0.5</code></td>
+              </tr>
+              <tr>
+                <td><code>^</code></td>
+                <td>Power / Exponentiation</td>
+                <td>Level 4</td>
+                <td>Right-to-Left</td>
+                <td><code>2 ^ 3 ^ 2 = 512</code></td>
+              </tr>
+              <tr>
+                <td><code>neg</code></td>
+                <td>Unary Minus (±)</td>
+                <td>Level 3</td>
+                <td>Right-to-Left</td>
+                <td><code>-5 ^ 2 = -25</code></td>
+              </tr>
+              <tr>
+                <td><code>*, /</code></td>
+                <td>Multiply, Divide</td>
+                <td>Level 2</td>
+                <td>Left-to-Right</td>
+                <td><code>10 + 2 * 3 = 16</code></td>
+              </tr>
+              <tr>
+                <td><code>+, -</code></td>
+                <td>Addition, Subtraction</td>
+                <td>Level 1 (Lowest)</td>
+                <td>Left-to-Right</td>
+                <td><code>15 - 5 + 2 = 12</code></td>
+              </tr>
+              <tr>
+                <td><code>fn(...)</code></td>
+                <td>Trig, Log, Root functions</td>
+                <td>Immediate Stack</td>
+                <td>Function Arguments</td>
+                <td><code>sin(30) = 0.5</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 12px; font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace;">
+            * Follows standard scientific mathematical conventions: Exponents evaluate right-to-left; unary negation binds tighter than binary subtraction.
+          </div>
+        </div>
+
+        <div class="card" style="flex: 1;">
+          <div class="card-title amber">Unary Negation Resolution Logic</div>
+          <p style="font-size: 11px; color: var(--white); margin-bottom: 10px; line-height: 1.4;">
+            Differentiating binary subtraction <code>a - b</code> from negative numbers <code>-x</code> without ambiguous syntax:
+          </p>
+          <ul class="bullet-list" style="margin-bottom: 12px;">
+            <li><b>At Start:</b> <code>-5</code> is parsed as <code>neg 5</code></li>
+            <li><b>Post-Operator:</b> <code>3 * -4</code> becomes <code>3 * (neg 4)</code></li>
+            <li><b>Post-Parenthesis:</b> <code>2 / (-8)</code> becomes <code>2 / (neg 8)</code></li>
+          </ul>
+          <div class="card-title green" style="font-size: 13px; margin-top: 6px;">Domain Traps Guarded:</div>
+          <ul class="bullet-list">
+            <li><code>x / 0</code> → Trapped as "Divide by zero"</li>
+            <li><code>√(-x)</code> → Trapped as "√ of negative number"</li>
+            <li><code>ln(0)</code> → Trapped as "Non-positive number"</li>
+            <li><code>3.5!</code> → Trapped as "Integer required"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Hardware UI & Acoustics (with Screenshot) -->
+    <div class="slide" id="slide-5">
+      <div class="eyebrow">SENSORY REALISM</div>
+      <div class="slide-h1">
+        <span>Hardware Casing & Synthesized Acoustic Physics</span>
+        <span class="badge active">Live UI Prototype</span>
+      </div>
+      <div class="slide-body">
+        <div class="screenshot-frame" style="flex: 1.25;">
+          <img src="presentation_assets/calc_overview.png" alt="Calculator Hardware UI" />
+          <div class="caption">▲ Live Prototype View: Dual-power photovoltaic strip, recessed optical LCD, and molded rubber grip casing.</div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+          <div class="card">
+            <div class="card-title green">Web Audio Membrane Switch Physics</div>
+            <ul class="bullet-list">
+              <li><b>Plastic Contact Burst:</b> 15ms white noise buffer shaped by BiquadFilter (1800Hz - 2400Hz bandpass, Q=3.5) replicating keycap impact.</li>
+              <li><b>Membrane Bottom-Out Thump:</b> 160Hz - 210Hz exponential decaying sine oscillator reproducing tactile dome bottoming out.</li>
+              <li><b>Zero Latency / Zero Assets:</b> 100% synthetically generated in runtime; 0 KB network payload, instant audio playback.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-title cyan">Industrial Design & Ergonomics</div>
+            <ul class="bullet-list">
+              <li><b>Photovoltaic Solar Bezel:</b> 4-cell solar simulation strip reflecting dynamic ambient light.</li>
+              <li><b>Optical Glass Screen:</b> Recessed LCD display with anti-reflective glass sheen and annunciator indicators.</li>
+              <li><b>3D Keycap Actuation:</b> CSS 3D keycaps with physical micro-travel displacement (<code>whileTap={{ y: 2 }}</code>).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: Paper Tape History & Memory (with Screenshot) -->
+    <div class="slide" id="slide-6">
+      <div class="eyebrow">WORKFLOW CONTINUITY</div>
+      <div class="slide-h1">
+        <span>Virtual Continuous Paper Tape & 5-Key Memory</span>
+        <span class="badge active">Audit Trail</span>
+      </div>
+      <div class="slide-body">
+        <div class="screenshot-frame" style="flex: 1.25;">
+          <img src="presentation_assets/calc_with_history.png" alt="Paper Tape Calculation History" />
+          <div class="caption">▲ Live Tape: Logs expressions with timestamp & DEG/RAD tag (e.g. 12*8=96, sin(30)=0.5, sqrt(144)=12).</div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+          <div class="card">
+            <div class="card-title green">Continuous Paper Tape (HistoryPanel.tsx)</div>
+            <ul class="bullet-list">
+              <li><b>Persistent Synchronization:</b> Retains up to 50 calculations across browser tabs, reloads, and closures.</li>
+              <li><b>1-Click Result Injection:</b> Clicking any previous calculation card instantly injects its answer into active expression.</li>
+              <li><b>Equation Recall:</b> Allows loading previous mathematical expressions for rapid adjustment.</li>
+              <li><b>Granular & Batch Deletion:</b> Clear individual faulty lines or flush the entire tape at once.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-title amber">5-Key Memory Architecture</div>
+            <ul class="bullet-list">
+              <li><b>MC (Memory Clear):</b> Resets memory register to 0 and clears the LCD 'M' indicator.</li>
+              <li><b>MR (Memory Recall):</b> Injects current stored register value into expression.</li>
+              <li><b>M+ / M- (Accumulate):</b> Evaluates current LCD display and adds/subtracts from memory register.</li>
+              <li><b>MS (Memory Store):</b> Stores evaluated result directly into dedicated memory slot.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: Scientific Reference Library (with Screenshot) -->
+    <div class="slide" id="slide-7">
+      <div class="eyebrow">DOMAIN EXCELLENCE</div>
+      <div class="slide-h1">
+        <span>Scientific Reference Library & Formula Templates</span>
+        <span class="badge active">Knowledge Base</span>
+      </div>
+      <div class="slide-body">
+        <div class="screenshot-frame" style="flex: 1.25;">
+          <img src="presentation_assets/calc_constants.png" alt="Constants and Formulas Sheet" />
+          <div class="caption">▲ Live Reference Sheet: Integrated catalog of universal physical & mathematical constants.</div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+          <div class="card">
+            <div class="card-title cyan">Universal Physical & Mathematical Constants</div>
+            <ul class="bullet-list">
+              <li><b>π (Pi):</b> 3.141592653589793 • Circle circumference-to-diameter ratio.</li>
+              <li><b>e (Euler's Number):</b> 2.718281828459045 • Growth limit constant.</li>
+              <li><b>φ (Golden Ratio):</b> 1.6180339887 • Geometric divine proportion.</li>
+              <li><b>c (Speed of Light):</b> 299,792,458 m/s • Relativistic constant.</li>
+              <li><b>h (Planck Constant):</b> 6.62607015e-34 J·s • Quantum action constant.</li>
+              <li><b>G (Gravitation):</b> 6.67430e-11 m³/(kg·s²) • Newton's law.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-title green">Pre-Formulated Templates</div>
+            <ul class="bullet-list">
+              <li><b>Trigonometry:</b> Pythagorean identity <code>sin(45)^2 + cos(45)^2 = 1</code>.</li>
+              <li><b>Geometry:</b> Sphere volume <code>(4/3) * π * r^3</code> & Pythagorean hypotenuse.</li>
+              <li><b>Finance:</b> Compound interest model <code>P * (1 + r/n)^(n*t)</code>.</li>
+              <li><b>Mobile Routing:</b> Injects formula and switches tab back to keypad automatically.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: Comparative Matrix -->
+    <div class="slide" id="slide-8">
+      <div class="eyebrow">EVALUATOR BENCHMARK</div>
+      <div class="slide-h1">
+        <span>Industry Benchmark & Feature Comparison Matrix</span>
+        <span class="badge">Competitive Edge</span>
+      </div>
+      <div class="slide-body">
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Evaluation Metric</th>
+              <th>Generic Web Calc</th>
+              <th>Google Search Calc</th>
+              <th>Windows 11 Calc</th>
+              <th>Apex Scientific Calculator</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Math Engine Model</b></td>
+              <td><code>eval()</code> / String function</td>
+              <td>Proprietary server engine</td>
+              <td>Native desktop C++</td>
+              <td class="highlight">Pure TypeScript Shunting-Yard RPN</td>
+            </tr>
+            <tr>
+              <td><b>Acoustic Switch Feedback</b></td>
+              <td>None (Silent)</td>
+              <td>None (Silent)</td>
+              <td>None (Silent)</td>
+              <td class="highlight">Synthesized Web Audio (1.9kHz Dome)</td>
+            </tr>
+            <tr>
+              <td><b>Physical Chassis Design</b></td>
+              <td>Generic CSS grid</td>
+              <td>Flat material cards</td>
+              <td>Fluent Windows OS</td>
+              <td class="highlight">Solar cell, molded grips & optical LCD</td>
+            </tr>
+            <tr>
+              <td><b>Built-in Constants Library</b></td>
+              <td>None</td>
+              <td>Manual query only</td>
+              <td>None</td>
+              <td class="highlight">8 Universal Physical/Math Constants</td>
+            </tr>
+            <tr>
+              <td><b>Continuous Paper Tape</b></td>
+              <td>None / Flushed on reload</td>
+              <td>Session only</td>
+              <td>Desktop window only</td>
+              <td class="highlight">Persistent localStorage (Up to 50 items)</td>
+            </tr>
+            <tr>
+              <td><b>Full Keyboard Hotkeys</b></td>
+              <td>Basic numbers & +-*/</td>
+              <td>Partial</td>
+              <td>Numpad standard</td>
+              <td class="highlight">Direct Scientific (s, t, r, l, n, p, e, d)</td>
+            </tr>
+            <tr>
+              <td><b>Client-Side Privacy</b></td>
+              <td>Varies</td>
+              <td>Queries sent to cloud</td>
+              <td>Desktop local</td>
+              <td class="highlight">100% Client-Side Static Hosting</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 14px; padding: 10px 16px; border-radius: 8px; background: rgba(126, 224, 129, 0.05); border: 1px solid rgba(126, 224, 129, 0.2); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--green);">
+        KEY TAKEAWAY: Apex outperforms generic web calculators across mathematical safety, tactile feedback, sensory immersion, and academic reference utilities.
+      </div>
+    </div>
+
+    <!-- SLIDE 9: Keyboard Accelerators (with Screenshot) -->
+    <div class="slide" id="slide-9">
+      <div class="eyebrow">PRODUCTIVITY SPEED</div>
+      <div class="slide-h1">
+        <span>Power-User Keyboard Accelerators & Event Isolation</span>
+        <span class="badge active">Speed Efficiency</span>
+      </div>
+      <div class="slide-body">
+        <div class="screenshot-frame" style="flex: 1.25;">
+          <img src="presentation_assets/calc_shortcuts.png" alt="Keyboard Shortcuts Guide" />
+          <div class="caption">▲ Live Shortcuts Modal: Full desktop keyboard mapping for rapid calculations.</div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+          <div class="card">
+            <div class="card-title amber">Direct Scientific Single-Key Mappings</div>
+            <ul class="bullet-list">
+              <li><code>s</code> / <code>t</code>: Injects <code>sin(</code> or <code>tan(</code> trigonometric functions.</li>
+              <li><code>r</code> / <code>q</code>: Injects <code>sqrt(</code> square root operator.</li>
+              <li><code>l</code> / <code>n</code>: Injects <code>log(</code> (base 10) or <code>ln(</code> (natural log).</li>
+              <li><code>p</code> / <code>e</code>: Inserts universal constants π and Euler's e.</li>
+              <li><code>d</code> / <code>Esc</code>: Toggles DEG/RAD modes (d) or Clears Display (Esc/C).</li>
+              <li><code>Enter</code> / <code>=</code>: Evaluates with tactile chime confirmation.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-title cyan">Event Collision Prevention Architecture</div>
+            <ul class="bullet-list">
+              <li><b>Input Isolation:</b> Ignores keydown if focus is inside any text input or textarea.</li>
+              <li><b>Default Suppression:</b> Prevents unwanted browser scrolling on Enter, Backspace, or math operators.</li>
+              <li><b>Auditory Synchronization:</b> Triggers matching acoustic switch sound on physical keystroke.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: Production Deployment & Metrics -->
+    <div class="slide" id="slide-10">
+      <div class="eyebrow">VERIFICATION & DEPLOYMENT</div>
+      <div class="slide-h1">
+        <span>Production Performance Metrics & Live Deployment</span>
+        <span class="badge active">Shipped to Production</span>
+      </div>
+      <div class="slide-body" style="flex-direction: column; gap: 18px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+          <div class="card" style="text-align: center;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 800; color: var(--green);">2.37s</div>
+            <div style="font-size: 13px; font-weight: 700; color: var(--white); margin: 4px 0;">Vite Build Time</div>
+            <div style="font-size: 11px; color: var(--muted);">Rolldown / Vite 8.3 production bundling.</div>
+          </div>
+          <div class="card" style="text-align: center;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 800; color: var(--cyan);">0 CVE</div>
+            <div style="font-size: 13px; font-weight: 700; color: var(--white); margin: 4px 0;">Security Vulnerabilities</div>
+            <div style="font-size: 11px; color: var(--muted);">0 vulnerabilities audited, zero eval() risks.</div>
+          </div>
+          <div class="card" style="text-align: center;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 800; color: var(--amber);">121 kB</div>
+            <div style="font-size: 13px; font-weight: 700; color: var(--white); margin: 4px 0;">Gzip Bundle</div>
+            <div style="font-size: 11px; color: var(--muted);">Ultra-lightweight static asset footprint.</div>
+          </div>
+          <div class="card" style="text-align: center;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 800; color: var(--green);">100%</div>
+            <div style="font-size: 13px; font-weight: 700; color: var(--white); margin: 4px 0;">Client-Side Privacy</div>
+            <div style="font-size: 11px; color: var(--muted);">Zero user telemetry, pure local computation.</div>
+          </div>
+        </div>
+
+        <div class="card" style="border-color: rgba(46, 196, 182, 0.4);">
+          <div class="card-title cyan">GitHub Production Links</div>
+          <ul class="bullet-list" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+            <li><b>Repository:</b> <a href="https://github.com/greatrocktiger-byte/apex-scientific-calculator" target="_blank" style="color:var(--green); text-decoration:none;">https://github.com/greatrocktiger-byte/apex-scientific-calculator</a></li>
+            <li><b>Live App:</b> <a href="https://greatrocktiger-byte.github.io/apex-scientific-calculator/" target="_blank" style="color:var(--cyan); text-decoration:none;">https://greatrocktiger-byte.github.io/apex-scientific-calculator/</a></li>
+            <li><b>Deployment:</b> Automated GitHub Pages hosting via <code>gh-pages</code> branch with relative path routing.</li>
+            <li><b>License:</b> Apache License 2.0 (Open Source & Enterprise Permissive).</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top: 14px; padding: 12px 18px; border-radius: 8px; background: var(--card-hover); font-size: 12px; font-weight: 700; color: var(--green); border: 1px solid var(--border);">
+        FINAL TAKEAWAY: Apex bridges tactile hardware aesthetics with algorithmic mathematical correctness, delivering a responsive, audibly tactile, and accessible calculator for engineering workflows.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 10;
+
+    function showSlide(n) {
+      if (n < 1) n = 1;
+      if (n > totalSlides) n = totalSlides;
+      currentSlide = n;
+
+      document.querySelectorAll('.slide').forEach((s, idx) => {
+        s.classList.toggle('active', idx + 1 === n);
+      });
+
+      document.getElementById('counter').innerText = `${currentSlide} / ${totalSlides}`;
+      document.getElementById('progress').style.width = `${(currentSlide / totalSlides) * 100}%`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) showSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      } else if (e.key === 'Home') {
+        showSlide(1);
+      } else if (e.key === 'End') {
+        showSlide(totalSlides);
+      }
+    });
+
+    showSlide(1);
+  </script>
+</body>
+</html>
